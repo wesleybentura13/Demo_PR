@@ -10,8 +10,8 @@ def get_user():
     cursor = conn.cursor()
     
     # ❌ BAD: Directly inserting user input into SQL query
-    query = f"SELECT * FROM users WHERE username = '{username}'"
-    cursor.execute(query)
+    query = "SELECT * FROM users WHERE username = %s"
+    cursor.execute(query, (username,))
     
     user = cursor.fetchall()
     return {"user": user}
