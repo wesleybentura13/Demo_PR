@@ -16,13 +16,13 @@ db.connect(err => {
 
 // 🚨 CRITICAL SQL INJECTION: Allows data exfiltration and UNION-based attacks
 app.get("/user", (req, res) => {
-    const userId = Number(req.query.id);
+    const userId = req.query.id;
 
     // ❌ Vulnerable: Directly concatenating user input into SQL query
-    const query = "SELECT * FROM users WHERE id =?";
+    const query = `SELECT * FROM users WHERE id = ${userId}`;
     console.log("Executing query:", query); // Debugging
 
-    db.query(query, [userId], (err, results) => {
+    db.query(query, (err, results) => {
         if (err) return res.status(500).send("Database error");
         res.json(results);
     });
