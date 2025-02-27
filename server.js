@@ -23,7 +23,7 @@ app.get("/search", (req, res) => {
     const search = req.query.q;
 
     // ❌ Vulnerable: Directly injecting user input into SQL query
-    const query = `SELECT * FROM users WHERE username = '${search}'`;
+    const query = { text: "SELECT * FROM users WHERE username = $1", values: [search] };
 
     console.log("Executing query:", query); // Debugging
 
@@ -40,7 +40,8 @@ app.post("/comment", (req, res) => {
     // ❌ Vulnerable: Inserting user input directly into HTML without escaping
     const htmlResponse = `<h1>Thank you, ${username}!</h1><p>Your comment: ${comment}</p>`;
     
-    res.send(htmlResponse);
+    res.headers['content-type'] = 'text/plain; charset=utf-8';
+    res.send(plainResponse);
 });
 
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
