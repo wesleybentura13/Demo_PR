@@ -60,6 +60,7 @@ app.post('/login', async (req, res) => {
 
 app.get('/profile', (req, res) => {
     const username = req.query.username;
+    res.headers['content-type'] = 'text/plain; charset=utf-8';
     res.send(`<h1>Welcome, ${username}</h1>`); // XSS Vulnerability
 });
 
