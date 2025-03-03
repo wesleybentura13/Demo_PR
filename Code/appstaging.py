@@ -9,7 +9,7 @@ def get_user():
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     
-    # ❌ BAD: Directly inserting user input into SQL query
+  
     query = f"SELECT * FROM users WHERE username = '{username}'"
     cursor.execute(query)
     

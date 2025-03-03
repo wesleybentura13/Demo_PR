@@ -14,11 +14,11 @@ db.connect(err => {
     console.log("✅ Connected to MySQL");
 });
 
-// 🚨 CRITICAL SQL INJECTION: Allows data exfiltration and UNION-based attacks
+
 app.get("/user", (req, res) => {
     const userId = req.query.id;
 
-    // ❌ Vulnerable: Directly concatenating user input into SQL query
+ 
     const query = `SELECT * FROM users WHERE id = ${userId}`;
     console.log("Executing query:", query); // Debugging
 
