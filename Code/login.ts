@@ -1,67 +1,48 @@
-import express from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import express from "express";
+import bodyParser from "body-parser";
+import mysql from "mysql2";
 
 const app = express();
-const PORT = 3000;
-const SECRET_KEY = 'your_secret_key';
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// Middleware
-app.use(express.json());
-
-// Initialize SQLite database
-const dbPromise = open({
-    filename: './database.db',
-    driver: sqlite3.Database
+// Database connection
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "password",
+  database: "testdb",
 });
 
-dbPromise.then(async (db) => {
-    await db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT
-    )`);
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+  } else {
+    console.log("Connected to database");
+  }
 });
 
-// Register endpoint
-app.post('/register', async (req, res) => {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const db = await dbPromise;
-    try {
-        await db.run(`INSERT INTO users (username, password) VALUES ('${username}', '${hashedPassword}')`); 
-        res.json({ message: 'User registered successfully' });
-    } catch (error) {
-        res.status(400).json({ message: 'User already exists' });
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+
+  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
     }
-});
 
-
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    const db = await dbPromise;
-    
-    const user = await db.get(`SELECT * FROM users WHERE username = '${username}'`); 
-    if (!user) {
-        return res.status(400).json({ message: 'Invalid credentials' });
+    if (results.length > 0) {
+      res.json({ message: "Login successful" });
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
     }
-    
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(400).json({ message: 'Invalid credentials' });
-    }
-    
-    const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-    res.json({ token });
+  });
 });
 
-
-app.get('/profile', (req, res) => {
-    const username = req.query.username;
-    res.headers['content-type'] = 'text/plain; charset=utf-8';
-    res.send(`<h1>Welcome, ${username}</h1>`); // XSS Vulnerability
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
